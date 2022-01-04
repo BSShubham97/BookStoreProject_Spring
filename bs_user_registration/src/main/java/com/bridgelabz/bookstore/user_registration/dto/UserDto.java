@@ -1,6 +1,7 @@
 package com.bridgelabz.bookstore.user_registration.dto;
 
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import lombok.Data;
@@ -13,12 +14,12 @@ public class UserDto {
 	private String lastName;
 	private String kyc;
 	private String dob;
-	private Date registeredDate;
-	private Date updatedDate;
+	private LocalDate registeredDate;
+	private LocalDate updatedDate;
 	private String password;
 	private String email;
 	private Boolean verify;
-	private String otp;
-	private Date purchaseDate;
-	private Date expiryDate;
+	private Integer otp;
+	private LocalDate purchaseDate;
+	private LocalDate expiryDate;
 }

@@ -9,7 +9,7 @@ public interface IOrderService {
     
 	
 	OrderModel placeOrder(String token, OrderDto orderDto);
-	List<OrderModel>getAllOrders();
+	List<OrderModel>getAllOrders(String token);
 	OrderModel getOrderById(String token , Long id);
 	void cancelOrder(String token , Long id); 
 }

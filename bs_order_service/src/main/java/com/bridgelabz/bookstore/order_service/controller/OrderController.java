@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bridgelabz.bookstore.order_service.dto.OrderDto;
@@ -27,28 +28,28 @@ public class OrderController {
 	IOrderService orderService;
 
 	@GetMapping("/getorders")
-	public ResponseEntity<ResponseDto> getAllOrders() {
-		List<OrderModel> orderList = orderService.getAllOrders();
+	public ResponseEntity<ResponseDto> getAllOrders( @RequestParam String token) {
+		List<OrderModel> orderList = orderService.getAllOrders(token);
 		ResponseDto respDto = new ResponseDto("Get call for all orders successful", orderList);
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
 
 	@PostMapping("/placeorder")
-	public ResponseEntity<ResponseDto> placeOrder(@RequestHeader String token, @RequestBody OrderDto orderDto) {
+	public ResponseEntity<ResponseDto> placeOrder(@RequestParam String token, @RequestBody OrderDto orderDto) {
 		OrderModel orderDataInfo = orderService.placeOrder(token, orderDto);
 		ResponseDto respDto = new ResponseDto("Added Order Succcessfully !!!", orderDataInfo);
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
 
-	@GetMapping("/getOrderById")
-	public ResponseEntity<ResponseDto> getOrderById(@RequestHeader String token, @PathVariable Long id) {
+	@GetMapping("/getOrderById/{id}")
+	public ResponseEntity<ResponseDto> getOrderById(@RequestParam String token, @PathVariable Long id) {
 		OrderModel orderDataInfo = orderService.getOrderById(token, id);
 		ResponseDto respDto = new ResponseDto("GET CALL FOR ORDER:" + id + " Succcessfully !!!", orderDataInfo);
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
 
 	@DeleteMapping("/cancelOrder/{id}")
-	public ResponseEntity<ResponseDto> cancelOrder(@RequestHeader String token, @PathVariable Long id) {
+	public ResponseEntity<ResponseDto> cancelOrder(@RequestParam String token, @PathVariable Long id) {
 		orderService.cancelOrder(token, id);
 		ResponseDto respDto = new ResponseDto("Deleted ORDER Details with id: " + id, "DATABASE UPDATED !!!");
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);

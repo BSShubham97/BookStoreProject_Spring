@@ -10,4 +10,4 @@ public class BsUserRegistrationApplication {
 		SpringApplication.run(BsUserRegistrationApplication.class, args);
 	}
 
-}
+}	

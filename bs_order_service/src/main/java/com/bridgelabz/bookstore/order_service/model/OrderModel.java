@@ -1,6 +1,6 @@
 package com.bridgelabz.bookstore.order_service.model;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -20,16 +20,15 @@ public class OrderModel {
     @GeneratedValue(strategy= GenerationType.AUTO)
 	@Column(name="Order_ID")
    	private Long orderId;
-	private Date orderDate;
-	private String price;
-	private String quantity;
+	private LocalDate orderDate;
+	private Integer price;
+	private Integer quantity;
 	private String address;
 	private Long userId;
 	private Long bookId;
-	private boolean cancel;
+	private boolean cancel ;
 	
 	public OrderModel(OrderDto orderDto) {
-		super();
 		this.orderId = orderDto.getOrderId();
 		this.orderDate = orderDto.getOrderDate();
 		this.price = orderDto.getPrice();

@@ -41,7 +41,7 @@ public class BookController {
 
 	@RequestMapping("/get")
 	public ResponseEntity<ResponseDto> getAllBooks(@RequestParam(name = "token") String token) {
-		Boolean isVerified = restTemplate.getForObject("http://localhost:8081/lmsuser/verify?token=" + token,
+		Boolean isVerified = restTemplate.getForObject("http://BOOKSTORE-USER/bookstoreuser/verify?token="+token,
 				Boolean.class);
 		if (isVerified == true) {
 			List<BookModel> bookDataList = bookService.getAllBooks();
@@ -54,42 +54,53 @@ public class BookController {
 	}
 
 	@PostMapping("/addbook")
-	public ResponseEntity<ResponseDto> createUser(@Valid @RequestBody BookDto bookDto) {
-		BookModel bookModel = bookService.createBook(bookDto);
-		ResponseDto respDto = new ResponseDto("BOOK Added Succcessfully !!!",
-				tokenUtil.createToken(bookModel.getBook_Id()));
+	public ResponseEntity<ResponseDto> createUser(@RequestParam(name = "token") String token, @Valid @RequestBody BookDto bookDto) {
+		BookModel bookModel = bookService.createBook(token,bookDto);
+		ResponseDto respDto = new ResponseDto("BOOK Added Succcessfully !!!",bookModel);
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
 
-	@RequestMapping("/get/{id}")
-	public ResponseEntity<ResponseDto> getById(@PathVariable("id") long id) {
-		BookModel bookDataList = bookService.getBookById(id);
+	@RequestMapping("/getbyid/{id}")
+	public ResponseEntity<ResponseDto> getById(@RequestParam String token,@PathVariable long id) {
+		BookModel bookDataList = bookService.getBookById(token,id);
 		ResponseDto respDto = new ResponseDto("GET CALL FOR BOOK No." + id + " SUCCESSFUL", bookDataList);
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
 
 	@PutMapping("/update")
-	public ResponseEntity<ResponseDto> updateData(@RequestHeader(name = "token") String token,
+	public ResponseEntity<ResponseDto> updateData(@RequestParam String token,@RequestHeader Long id,
 			@Valid @RequestBody BookDto bookDto) {
 
-		BookModel hiredCandidate = bookService.updateBook(token, bookDto);
+		BookModel hiredCandidate = bookService.updateBook(token,id, bookDto);
 		ResponseDto respDto = new ResponseDto("UPDATED CANDIDATE DATA SUCCESSFULLY !!! ",
 				tokenUtil.createToken(hiredCandidate.getBook_Id()));
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
 
-	@DeleteMapping("/delete/{id}")
-	public ResponseEntity<ResponseDto> deleteCandidate(@PathVariable("id") long id) {
-		bookService.deleteBook(id);
+	@DeleteMapping("/deletebyid")
+	public ResponseEntity<ResponseDto> deleteCandidate(@RequestParam String token,@RequestHeader long id) {
+		bookService.deleteBook(token,id);
 		ResponseDto respDto = new ResponseDto("DELETED BOOK DATA SUCCESSFULLY !!!", "DATABASE UPDATED.");
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
 
 	@DeleteMapping("/cleardata")
-	public ResponseEntity<ResponseDto> deleteAllData() {
-		bookService.deleteAllData();
+	public ResponseEntity<ResponseDto> deleteAllData(@RequestParam String token) {
+		bookService.deleteAllData(token);
 		ResponseDto respDto = new ResponseDto("DELETED EVERYTHING SUCCESSFULLY !!!", "DATABASE UPDATED. NOW EMPTY ");
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
 
+	@PostMapping("/changequantity")
+	public ResponseEntity<ResponseDto> changeBookQuantity(@RequestParam String token, @RequestParam long id ,@RequestParam int quantity ) {
+		bookService.changeBookQuantity(token, id, quantity);
+		ResponseDto respDto = new ResponseDto("CHANGED QUANTITY SUCCESSFULLY !!!", "DATABASE UPDATED.");
+		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
+	}
+	@PostMapping("/changeprice")
+	public ResponseEntity<ResponseDto> changeBookPrice(@RequestParam String token, @RequestParam long id ,@RequestParam int price ) {
+		bookService.changeBookPrice(token, id, price);
+		ResponseDto respDto = new ResponseDto("CHANGED PRICE SUCCESSFULLY !!!", "DATABASE UPDATED.");
+		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
+	}
 }

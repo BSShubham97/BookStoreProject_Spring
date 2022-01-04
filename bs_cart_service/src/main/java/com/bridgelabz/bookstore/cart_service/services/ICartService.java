@@ -11,7 +11,7 @@ public interface ICartService {
 
 	List<CartModel> getAllCartItem(String token);
 
-	CartModel getCartItemsById(String token);
+	CartModel getCartItemsById(String token, Long id);
 
 	CartModel updateCartItem(String token, Long id, CartDto cartDto);
 

@@ -41,9 +41,7 @@ public class RegistrationController {
 	UserRepository useRepository;
 	@Autowired
 	EmailSenderService mailService;
-	
-	
-	
+
 	@RequestMapping(value = { "", "/", "get" })
 	public ResponseEntity<ResponseDto> getUserRegisterData() {
 		List<UserModel> userDataList = iuserRegistration.getAllUsers();
@@ -59,29 +57,26 @@ public class RegistrationController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<ResponseDto> createUser(@Valid @RequestBody UserDto userDto) {
-		
+	public ResponseEntity<ResponseDto> createUser(@Valid @RequestBody UserDto userDto) throws LoginException {
+
 		UserModel userData = null;
 		userData = iuserRegistration.createUser(userDto);
 		String registerToken = tokenUtil.createToken(userData.getId());
-		ResponseDto respDto = new ResponseDto("User Registered Succcessfully !!!",
-				                               registerToken);
-		mailService.sendMail(userDto.getEmail() ,
-				"This is the Registration Message !!! ",
-				                       "You have been registered . Your token is: " +registerToken
-				                       );
-		
+		ResponseDto respDto = new ResponseDto("User Registered Succcessfully !!!", registerToken);
+		mailService.sendMail(userDto.getEmail(), "This is the Registration Message !!! ", "You have been registered."
+				+ "\n" + " Your token is: " + registerToken + "\n" + "Your OTP is :" + userDto.getOtp());
+
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
 
 	@PutMapping("/update")
-	public ResponseEntity<ResponseDto> updateEmployeePayrollData(@RequestHeader(name="token") String token,
+	public ResponseEntity<ResponseDto> updateEmployeePayrollData(@RequestHeader(name = "token") String token,
 			@Valid @RequestBody UserDto userDto) {
-		
+
 		UserModel userData = null;
-		userData = iuserRegistration.updateUser(token , userDto);
+		userData = iuserRegistration.updateUser(token, userDto);
 		ResponseDto respDto = new ResponseDto("UPDATED USER DATA SUCCESSFULLY !!! ",
-				                                tokenUtil.createToken(userData.getId()));
+				tokenUtil.createToken(userData.getId()));
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
 
@@ -94,16 +89,16 @@ public class RegistrationController {
 
 	@PostMapping("/login")
 	public ResponseEntity<ResponseDto> loginUser(@RequestBody LoginDto loginDto) {
-		UserModel userData = null;
-		userData =iuserRegistration.loginRequest(loginDto);
-		ResponseDto respDto = new ResponseDto("LOGIN SUCCESSFULLY !!!", tokenUtil.createToken(userData.getId()));
+		UserModel userData;
+		userData = iuserRegistration.loginRequest(loginDto);
+		ResponseDto respDto = new ResponseDto("LOGIN SUCCESSFULLY !!!",
+				"Username: " + loginDto.getEmail() + "is Logged IN !!!");
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 
 	}
-	
+
 	@GetMapping("/forgotpassword")
-	public ResponseEntity<ResponseDto> ForgetPassword(@Valid @RequestBody ForgotPassDTO forgotPassDTO)
-			 {
+	public ResponseEntity<ResponseDto> ForgetPassword(@Valid @RequestBody ForgotPassDTO forgotPassDTO) {
 		UserModel userData = iuserRegistration.forgetPassword(forgotPassDTO);
 		ResponseDto respDto = new ResponseDto("Forgot Password Successfull", userData);
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
@@ -116,15 +111,54 @@ public class RegistrationController {
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
 
-
 	@GetMapping("/verify")
-	ResponseEntity<Boolean> verifyUser( @RequestParam(name="token") String token) throws LoginException{
-		
-	if(token != null) {
-		Boolean isTrue = iuserRegistration.verifyUser(token);
-		return new ResponseEntity<Boolean>(isTrue, HttpStatus.OK);
-	
-	}else
-		throw new LoginException("Login Token not valid ");
-}
+	ResponseEntity<Boolean> verifyUser(@RequestParam(name = "token") String token) throws LoginException {
+
+		if (token != null) {
+			Boolean isTrue = iuserRegistration.verifyUser(token);
+			return new ResponseEntity<Boolean>(isTrue, HttpStatus.OK);
+
+		} else
+			throw new LoginException("Login Token not valid ");
+	}
+
+	@GetMapping("/sendotp")
+	ResponseEntity<ResponseDto> sendOtp(@RequestParam(name = "token") String token) {
+		 iuserRegistration.sendOtp(token);
+		ResponseDto respDto = new ResponseDto("OTP SENT !!!", "SUCCESS");
+		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
+
+	}
+
+	@GetMapping("/checkotp")
+	ResponseEntity<ResponseDto> checkOtp(@RequestParam(name = "token") String token, @PathVariable Integer otp) {
+		if (token != null) {
+			Boolean isTrue = iuserRegistration.checkOtp(token, otp);
+			if (isTrue == true) {
+				ResponseDto respDto = new ResponseDto("OTP VERIFIED !!!", otp);
+				return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
+			} else {
+				ResponseDto respDto = new ResponseDto("OTP NOT VERIFIED !!!", otp);
+				return new ResponseEntity<ResponseDto>(respDto, HttpStatus.FORBIDDEN);
+			}
+		}
+		return null;
+	}
+
+	@GetMapping("/purchase")
+	ResponseEntity<ResponseDto> purchase(@RequestHeader String token) {
+		UserModel userData = iuserRegistration.purchase(token);
+		ResponseDto respDto = new ResponseDto(" Purchase Successfully", userData);
+		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
+
+	}
+
+	@GetMapping("/expirydate")
+	ResponseEntity<ResponseDto> expiration(@RequestHeader String token) {
+		UserModel userData = iuserRegistration.expiry(token);
+		ResponseDto respDto = new ResponseDto(" Expiry date sent !!!", userData);
+		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
+
+	}
+
 }

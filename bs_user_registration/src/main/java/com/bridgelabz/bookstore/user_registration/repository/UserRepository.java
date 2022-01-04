@@ -11,6 +11,7 @@ import com.bridgelabz.bookstore.user_registration.model.UserModel;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserModel, Long> {
-	@Query(value = "select * from book_store_user_registration where email= :email", nativeQuery = true)
+//	@Query(value = "select * from book_store_user_registration where email= :email", nativeQuery = true)
+	@Query(value = "select * from User_Registration where email= :email", nativeQuery = true)
 	Optional<UserModel> findByEmail(String email);
 }

@@ -1,9 +1,10 @@
 package com.bridgelabz.bookstore.user_registration.service;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import javax.validation.Valid;
 
@@ -14,13 +15,15 @@ import org.springframework.stereotype.Service;
 import com.bridgelabz.bookstore.user_registration.dto.ForgotPassDTO;
 import com.bridgelabz.bookstore.user_registration.dto.LoginDto;
 import com.bridgelabz.bookstore.user_registration.dto.UserDto;
+import com.bridgelabz.bookstore.user_registration.exception.LoginException;
+import com.bridgelabz.bookstore.user_registration.exception.UserNotFoundException;
 import com.bridgelabz.bookstore.user_registration.model.UserModel;
 import com.bridgelabz.bookstore.user_registration.repository.UserRepository;
 import com.bridgelabz.bookstore.user_registration.util.Email;
 import com.bridgelabz.bookstore.user_registration.util.TokenUtil;
 
 @Service
-public class UserRegistrationService implements IUserRegistrationService{
+public class UserRegistrationService implements IUserRegistrationService {
 
 	@Autowired
 	TokenUtil tokenUtil;
@@ -41,17 +44,26 @@ public class UserRegistrationService implements IUserRegistrationService{
 	}
 
 	public UserModel getUserById(long id) {
+
 		return userRepository.findById(id).get();
+
 	}
 
-	public UserModel createUser(@Valid UserDto userDto) {
-		UserModel userData = new UserModel(userDto);
-		userData.setPassword(passwordEncoder.encode(userDto.getPassword()));
-		userData.setRegisteredDate(new Date(System.currentTimeMillis()));
-		return userRepository.save(userData);
+	public UserModel createUser(@Valid UserDto userDto) throws LoginException {
+		Optional<UserModel> userCheck = userRepository.findByEmail(userDto.getEmail());
+		if (userCheck.isPresent()) {
+			throw new LoginException("Email already exists");
+		} else {
+			UserModel userData = new UserModel(userDto);
+			userData.setPassword(passwordEncoder.encode(userDto.getPassword()));
+			userData.setRegisteredDate(LocalDate.now());
+			userData.setExpiryDate(LocalDate.now().plusYears(1));
+
+			return userRepository.save(userData);
+		}
 	}
 
-	public UserModel updateUser(String token, UserDto userDto) {
+	public UserModel updateUser(String token, UserDto userDto) throws UserNotFoundException {
 		Long Id = tokenUtil.decodeToken(token);
 		Optional<UserModel> userData = userRepository.findById(Id);
 		if (userData.isPresent()) {
@@ -59,18 +71,22 @@ public class UserRegistrationService implements IUserRegistrationService{
 			userData.get().setLastName(userDto.getLastName());
 			userData.get().setEmail(userDto.getEmail());
 			userData.get().setDob(userDto.getDob());
-			userData.get().setUpdatedDate(new Date(System.currentTimeMillis()));
+			userData.get().setUpdatedDate(LocalDate.now());
 			userRepository.save(userData.get());
 			return userData.get();
+		} else {
+			throw new UserNotFoundException("User not present of this Id");
+
 		}
-		return null;
 	}
 
-	public UserModel deleteUser(long id) {
+	public UserModel deleteUser(long id) throws UserNotFoundException {
 		Optional<UserModel> userData = userRepository.findById(id);
 		if (userData.isPresent()) {
 			userRepository.delete(userData.get());
 			;
+		} else {
+			throw new UserNotFoundException("User not present of this Id");
 		}
 		return null;
 	}
@@ -113,7 +129,7 @@ public class UserRegistrationService implements IUserRegistrationService{
 			// SETTING THE NEW PASSWORD AND SAVING INTO THE DATABASE
 			userData.get().setPassword(passwordEncoder.encode(password));
 
-			userData.get().setUpdatedDate(new Date(System.currentTimeMillis()));
+			userData.get().setUpdatedDate(LocalDate.now());
 			return userRepository.save(userData.get());
 		}
 		return null;
@@ -127,6 +143,77 @@ public class UserRegistrationService implements IUserRegistrationService{
 			return false;
 		}
 
+	}
+
+	@Override
+	public UserModel sendOtp(String token) {
+		Long id = tokenUtil.decodeToken(token);
+
+		Optional<UserModel> userData = userRepository.findById(id);
+		if (userData.isPresent()) {
+			Random random = new Random();
+			Integer otpRandom = random.nextInt(10000);
+			userData.get().setOtp(otpRandom);
+			String userEmailId = userData.get().getEmail();
+			email.setTo(userEmailId);
+			email.setFrom("shubhamb97.it@gmail.com");
+			email.setSubject("\033[0;1m" + "VERIFICATION OTP");
+			email.setBody("Please keep this OTP for verification");
+			email.setBody("Your OTP: " + otpRandom);
+			userData.get().setOtp(otpRandom);
+		}
+		return null;
+	}
+
+	@Override
+	public Boolean checkOtp(String token, Integer otp) {
+		Long id = tokenUtil.decodeToken(token);
+		Optional<UserModel> userData = userRepository.findById(id);
+		if (userData.isPresent()) {
+			if (userData.get().getOtp() == otp) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public UserModel purchase(String token) {
+		long Id = tokenUtil.decodeToken(token);
+		Optional<UserModel> isUserPresent = userRepository.findById(Id);
+		if (isUserPresent.isPresent()) {
+			LocalDate todayDate = LocalDate.now();
+			isUserPresent.get().setPurchaseDate(todayDate);
+			isUserPresent.get().setExpiryDate(todayDate.plusYears(1));
+			userRepository.save(isUserPresent.get());
+
+			String userEmailId = isUserPresent.get().getEmail();
+			email.setTo(userEmailId);
+			email.setFrom("shubhamb97.it@gmail.com");
+			email.setSubject("Purchase successfull !!!");
+			email.setBody("Your subscription will end on " + isUserPresent.get().getExpiryDate());
+		}
+		return null;
+	}
+
+	@Override
+	public UserModel expiry(String token) {
+		long Id = tokenUtil.decodeToken(token);
+		Optional<UserModel> isUserPresent = userRepository.findById(Id);
+		if (isUserPresent.isPresent()) {
+			LocalDate todayDate = LocalDate.now();
+			String userEmailId = isUserPresent.get().getEmail();
+			if (todayDate.equals(isUserPresent.get().getExpiryDate())) {
+				email.setTo(userEmailId);
+				email.setFrom("shubhamb97.it@gmail.com");
+				email.setSubject("Remainder of Service Expiry !!!");
+				email.setBody("Your subscription is about to end please renew your subscription.");
+
+			}
+		}
+		return null;
 	}
 
 }
