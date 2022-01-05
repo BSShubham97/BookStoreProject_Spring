@@ -23,6 +23,7 @@ import com.bridgelabz.bookstore.user_registration.dto.LoginDto;
 import com.bridgelabz.bookstore.user_registration.dto.ResponseDto;
 import com.bridgelabz.bookstore.user_registration.dto.UserDto;
 import com.bridgelabz.bookstore.user_registration.exception.LoginException;
+import com.bridgelabz.bookstore.user_registration.exception.UserNotFoundException;
 import com.bridgelabz.bookstore.user_registration.model.UserModel;
 import com.bridgelabz.bookstore.user_registration.repository.UserRepository;
 import com.bridgelabz.bookstore.user_registration.service.EmailSenderService;
@@ -50,7 +51,7 @@ public class RegistrationController {
 	}
 
 	@RequestMapping("/get/{userId}")
-	public ResponseEntity<ResponseDto> getById(@PathVariable("userId") int userId) {
+	public ResponseEntity<ResponseDto> getById(@PathVariable("userId") int userId) throws LoginException, UserNotFoundException {
 		UserModel userDataList = iuserRegistration.getUserById(userId);
 		ResponseDto respDto = new ResponseDto("GET CALL FOR USER SUCCESSFUL", userDataList);
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
@@ -71,7 +72,7 @@ public class RegistrationController {
 
 	@PutMapping("/update")
 	public ResponseEntity<ResponseDto> updateEmployeePayrollData(@RequestHeader(name = "token") String token,
-			@Valid @RequestBody UserDto userDto) {
+			@Valid @RequestBody UserDto userDto) throws UserNotFoundException, LoginException {
 
 		UserModel userData = null;
 		userData = iuserRegistration.updateUser(token, userDto);
@@ -81,24 +82,23 @@ public class RegistrationController {
 	}
 
 	@DeleteMapping("/delete/{userId}")
-	public ResponseEntity<ResponseDto> deleteUser(@PathVariable("userId") int userId) {
+	public ResponseEntity<ResponseDto> deleteUser(@PathVariable("userId") int userId) throws UserNotFoundException, LoginException {
 		iuserRegistration.deleteUser(userId);
 		ResponseDto respDto = new ResponseDto("DELETED USER DATA SUCCESSFULLY !!!", "DATABASE UPDATED.");
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<ResponseDto> loginUser(@RequestBody LoginDto loginDto) {
-		UserModel userData;
-		userData = iuserRegistration.loginRequest(loginDto);
-		ResponseDto respDto = new ResponseDto("LOGIN SUCCESSFULLY !!!",
+	public ResponseEntity<ResponseDto> loginUser(@RequestBody LoginDto loginDto) throws LoginException, UserNotFoundException {
+		UserModel userData = iuserRegistration.loginRequest(loginDto);
+		ResponseDto respDto = new ResponseDto("LOGIN SUCCESSFULLY !!! "+userData,
 				"Username: " + loginDto.getEmail() + "is Logged IN !!!");
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 
 	}
 
 	@GetMapping("/forgotpassword")
-	public ResponseEntity<ResponseDto> ForgetPassword(@Valid @RequestBody ForgotPassDTO forgotPassDTO) {
+	public ResponseEntity<ResponseDto> ForgetPassword(@Valid @RequestBody ForgotPassDTO forgotPassDTO) throws LoginException {
 		UserModel userData = iuserRegistration.forgetPassword(forgotPassDTO);
 		ResponseDto respDto = new ResponseDto("Forgot Password Successfull", userData);
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
@@ -146,7 +146,7 @@ public class RegistrationController {
 	}
 
 	@GetMapping("/purchase")
-	ResponseEntity<ResponseDto> purchase(@RequestHeader String token) {
+	ResponseEntity<ResponseDto> purchase(@RequestHeader String token) throws UserNotFoundException {
 		UserModel userData = iuserRegistration.purchase(token);
 		ResponseDto respDto = new ResponseDto(" Purchase Successfully", userData);
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
@@ -154,7 +154,7 @@ public class RegistrationController {
 	}
 
 	@GetMapping("/expirydate")
-	ResponseEntity<ResponseDto> expiration(@RequestHeader String token) {
+	ResponseEntity<ResponseDto> expiration(@RequestHeader String token) throws UserNotFoundException {
 		UserModel userData = iuserRegistration.expiry(token);
 		ResponseDto respDto = new ResponseDto(" Expiry date sent !!!", userData);
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);

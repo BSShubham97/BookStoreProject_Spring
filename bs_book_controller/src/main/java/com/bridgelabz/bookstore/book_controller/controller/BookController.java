@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -61,10 +62,9 @@ public class BookController {
 	}
 
 	@RequestMapping("/getbyid/{id}")
-	public ResponseEntity<ResponseDto> getById(@RequestParam String token,@PathVariable long id) {
+	public ResponseEntity<BookModel> getById(@RequestParam String token,@PathVariable long id) {
 		BookModel bookDataList = bookService.getBookById(token,id);
-		ResponseDto respDto = new ResponseDto("GET CALL FOR BOOK No." + id + " SUCCESSFUL", bookDataList);
-		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
+		return new ResponseEntity<BookModel>(bookDataList, HttpStatus.OK);
 	}
 
 	@PutMapping("/update")
@@ -91,13 +91,13 @@ public class BookController {
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
 
-	@PostMapping("/changequantity")
+	@GetMapping("/changequantity")
 	public ResponseEntity<ResponseDto> changeBookQuantity(@RequestParam String token, @RequestParam long id ,@RequestParam int quantity ) {
 		bookService.changeBookQuantity(token, id, quantity);
 		ResponseDto respDto = new ResponseDto("CHANGED QUANTITY SUCCESSFULLY !!!", "DATABASE UPDATED.");
 		return new ResponseEntity<ResponseDto>(respDto, HttpStatus.OK);
 	}
-	@PostMapping("/changeprice")
+	@GetMapping("/changeprice")
 	public ResponseEntity<ResponseDto> changeBookPrice(@RequestParam String token, @RequestParam long id ,@RequestParam int price ) {
 		bookService.changeBookPrice(token, id, price);
 		ResponseDto respDto = new ResponseDto("CHANGED PRICE SUCCESSFULLY !!!", "DATABASE UPDATED.");

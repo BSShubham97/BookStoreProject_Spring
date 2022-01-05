@@ -1,11 +1,6 @@
 package com.bridgelabz.bookstore.user_registration.model;
 
-
-
-
-
 import java.time.LocalDate;
-import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -21,11 +16,11 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name="User_Registration")
+@Table(name = "User_Registration")
 public class UserModel {
 	@Id
-	@GeneratedValue(strategy= GenerationType.AUTO)
-	@Column(name="ID")
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name = "ID")
 	private Long id;
 	private String firstName;
 	private String lastName;
@@ -53,7 +48,7 @@ public class UserModel {
 		this.password = userDto.getPassword();
 		this.email = userDto.getEmail();
 		this.verify = userDto.getVerify();
-    	this.otp = userDto.getOtp();
+		this.otp = userDto.getOtp();
 		this.purchaseDate = userDto.getPurchaseDate();
 		this.expiryDate = userDto.getExpiryDate();
 	}
@@ -61,6 +56,5 @@ public class UserModel {
 	public UserModel() {
 		super();
 	}
-
 
 }

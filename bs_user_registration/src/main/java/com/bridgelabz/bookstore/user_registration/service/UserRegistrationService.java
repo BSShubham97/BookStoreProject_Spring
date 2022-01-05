@@ -43,9 +43,12 @@ public class UserRegistrationService implements IUserRegistrationService {
 
 	}
 
-	public UserModel getUserById(long id) {
-
-		return userRepository.findById(id).get();
+	public UserModel getUserById(long id) throws UserNotFoundException {
+		Optional<UserModel> userData = userRepository.findById(id);
+		if (userData.isPresent()) {
+			return userRepository.findById(id).get();
+		} else
+			throw new UserNotFoundException("No such user Present !!!");
 
 	}
 
@@ -91,18 +94,20 @@ public class UserRegistrationService implements IUserRegistrationService {
 		return null;
 	}
 
-	public UserModel loginRequest(@Valid LoginDto loginRequest) {
+	public UserModel loginRequest(@Valid LoginDto loginRequest) throws UserNotFoundException {
 		Optional<UserModel> email = userRepository.findByEmail(loginRequest.getEmail());
 		if (email.isPresent()) {
 			System.out.println(email.get().toString());
-			if (passwordEncoder.matches(loginRequest.getPassword(), email.get().getPassword())) {
-				return email.get();
-			}
+		} else {
+			throw new UserNotFoundException("User not found");
+		}
+		if (passwordEncoder.matches(loginRequest.getPassword(), email.get().getPassword())) {
+			return email.get();
 		}
 		return null;
 	}
 
-	public UserModel forgetPassword(ForgotPassDTO forgotPassDTO) {
+	public UserModel forgetPassword(ForgotPassDTO forgotPassDTO) throws LoginException {
 		String emailId = forgotPassDTO.getEmail();
 		Optional<UserModel> isPresent = userRepository.findByEmail(emailId);
 		if (isPresent.isPresent()) {
@@ -116,8 +121,9 @@ public class UserRegistrationService implements IUserRegistrationService {
 
 			return isPresent.get();
 
+		} else {
+			throw new LoginException("Email not found !!!");
 		}
-		return null;
 	}
 
 	public UserModel reset(@Valid String password, String token) {
@@ -180,7 +186,7 @@ public class UserRegistrationService implements IUserRegistrationService {
 	}
 
 	@Override
-	public UserModel purchase(String token) {
+	public UserModel purchase(String token) throws UserNotFoundException {
 		long Id = tokenUtil.decodeToken(token);
 		Optional<UserModel> isUserPresent = userRepository.findById(Id);
 		if (isUserPresent.isPresent()) {
@@ -194,12 +200,14 @@ public class UserRegistrationService implements IUserRegistrationService {
 			email.setFrom("shubhamb97.it@gmail.com");
 			email.setSubject("Purchase successfull !!!");
 			email.setBody("Your subscription will end on " + isUserPresent.get().getExpiryDate());
+		} else {
+			throw new UserNotFoundException("User not Present !!");
 		}
 		return null;
 	}
 
 	@Override
-	public UserModel expiry(String token) {
+	public UserModel expiry(String token) throws UserNotFoundException {
 		long Id = tokenUtil.decodeToken(token);
 		Optional<UserModel> isUserPresent = userRepository.findById(Id);
 		if (isUserPresent.isPresent()) {
@@ -212,8 +220,10 @@ public class UserRegistrationService implements IUserRegistrationService {
 				email.setBody("Your subscription is about to end please renew your subscription.");
 
 			}
+		} else {
+			throw new UserNotFoundException("User Not Found !!!");
+
 		}
 		return null;
 	}
-
 }

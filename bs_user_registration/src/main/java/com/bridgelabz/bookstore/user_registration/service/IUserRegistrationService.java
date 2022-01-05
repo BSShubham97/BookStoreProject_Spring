@@ -17,17 +17,17 @@ public interface IUserRegistrationService {
 
 	UserModel createUser(UserDto userDto) throws LoginException;
 
-	UserModel updateUser(String token, UserDto userDto) throws UserNotFoundException;
+	UserModel updateUser(String token, UserDto userDto) throws LoginException ,UserNotFoundException;
 
-	UserModel getUserById(long id);
+	UserModel getUserById(long id) throws LoginException ,UserNotFoundException;
 
-	UserModel deleteUser(long id) throws UserNotFoundException;
+	UserModel deleteUser(long id) throws LoginException ,UserNotFoundException;
 
-	UserModel loginRequest(@Valid LoginDto loginDto);
+	UserModel loginRequest(@Valid LoginDto loginDto)throws LoginException, UserNotFoundException;
 
 	UserModel reset(@Valid String password, String token);
 
-	UserModel forgetPassword(ForgotPassDTO forgotPassDTO);
+	UserModel forgetPassword(ForgotPassDTO forgotPassDTO) throws LoginException;
 
 	Boolean verifyUser(String token);
 
@@ -35,8 +35,8 @@ public interface IUserRegistrationService {
 
 	Boolean checkOtp(String token, Integer otp);
 
-	UserModel purchase(String token);
+	UserModel purchase(String token) throws UserNotFoundException;
 	
-	UserModel expiry(String token);
+	UserModel expiry(String token) throws UserNotFoundException;
 
 }
